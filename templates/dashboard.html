@@ -1,20 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>スクリーンタイム記録</title>
+</head>
+<body>
+
 <h2>スクリーンタイム記録</h2>
 
 <form method="post">
-  今日の使用時間（分）
-  <input type="number" name="minutes">
-  <button>記録</button>
+    <p>
+        日付：
+        <input type="date" name="date" value="{{ default_date }}" required>
+    </p>
+
+    <p>
+        使用時間：
+        <input type="number" name="hours" min="0" max="23" value="0"> 時
+        <input type="number" name="minutes" min="0" max="59" value="0"> 分
+    </p>
+
+    <button>記録（同日は上書き）</button>
 </form>
 
+<hr>
+
 <h3>記録一覧</h3>
-<table border="1">
-<tr><th>日付</th><th>分</th></tr>
-{% for r in records %}
-<tr>
-  <td>{{ r[0] }}</td>
-  <td>{{ r[1] }}</td>
-</tr>
-{% endfor %}
+
+<table border="1" cellpadding="5">
+    <tr>
+        <th>日付</th>
+        <th>使用時間</th>
+    </tr>
+    {% for r in records %}
+    <tr>
+        <td>{{ r["date"] }}</td>
+        <td>
+            {{ r["minutes"] // 60 }} 時
+            {{ r["minutes"] % 60 }} 分
+        </td>
+    </tr>
+    {% endfor %}
 </table>
 
-<a href="/logout">ログアウト</a>
+<p>
+    <a href="/logout">ログアウト</a>
+</p>
+
+</body>
+</html>

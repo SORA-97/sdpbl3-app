@@ -2,21 +2,21 @@ from flask import Flask, render_template, request, redirect, session
 import sqlite3
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import date
+from datetime import date, timedelta
 
 app = Flask(__name__)
 app.secret_key = "secret_key"  # 本番では変更
 
-# ===== DBの場所を固定（超重要）=====
+# ===== DBパス固定 =====
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "app.db")
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row  # ← カラム名でアクセスできる
+    conn.row_factory = sqlite3.Row
     return conn
 
-# ===== 初回DB作成 =====
+# ===== DB初期化 =====
 with get_db() as conn:
     conn.execute("""
     CREATE TABLE IF NOT EXISTS users (
@@ -30,7 +30,8 @@ with get_db() as conn:
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
         date TEXT,
-        minutes INTEGER
+        minutes INTEGER,
+        UNIQUE(user_id, date)
     )
     """)
     conn.commit()
@@ -49,9 +50,6 @@ def login():
             "SELECT * FROM users WHERE username = ?",
             (name,)
         ).fetchone()
-
-        # デバッグ用（Render Logsで見える）
-        print("LOGIN TRY:", name, user)
 
         if user and check_password_hash(user["password"], pw):
             session["user_id"] = user["id"]
@@ -92,38 +90,41 @@ def dashboard():
     user_id = session["user_id"]
 
     if request.method == "POST":
-        minutes = request.form["minutes"]
-        today = date.today().isoformat()
+        input_date = request.form["date"]
+        hours = int(request.form["hours"])
+        minutes = int(request.form["minutes"])
+
+        total_minutes = hours * 60 + minutes
 
         db = get_db()
-        db.execute(
-            "INSERT INTO records (user_id, date, minutes) VALUES (?, ?, ?)",
-            (user_id, today, minutes)
-        )
+        # 同日データは上書き
+        db.execute("""
+        INSERT INTO records (user_id, date, minutes)
+        VALUES (?, ?, ?)
+        ON CONFLICT(user_id, date)
+        DO UPDATE SET minutes = excluded.minutes
+        """, (user_id, input_date, total_minutes))
         db.commit()
 
     db = get_db()
     records = db.execute(
-        "SELECT date, minutes FROM records WHERE user_id = ? ORDER BY date",
+        "SELECT date, minutes FROM records WHERE user_id = ? ORDER BY date DESC",
         (user_id,)
     ).fetchall()
 
-    return render_template("dashboard.html", records=records)
+    yesterday = (date.today() - timedelta(days=1)).isoformat()
+
+    return render_template(
+        "dashboard.html",
+        records=records,
+        default_date=yesterday
+    )
 
 # ===== ログアウト =====
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/")
-
-# ===== デバッグ用：ユーザー一覧 =====
-@app.route("/debug/users")
-def debug_users():
-    db = get_db()
-    users = db.execute(
-        "SELECT id, username FROM users"
-    ).fetchall()
-    return "<br>".join([f"{u['id']} : {u['username']}" for u in users])
 
 # ===== favicon対策 =====
 @app.route("/favicon.ico")
