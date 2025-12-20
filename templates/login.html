@@ -1,7 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ログイン</title>
+</head>
+<body>
+
 <h2>ログイン</h2>
+
+{% if error %}
+<p style="color:red">{{ error }}</p>
+{% endif %}
+
 <form method="post">
-  名前 <input name="username"><br>
-  パスワード <input type="password" name="password"><br>
-  <button>ログイン</button>
+    <p>
+        ユーザー名：
+        <input type="text" name="username" required>
+    </p>
+
+    <p>
+        パスワード：
+        <input type="password" name="password" required>
+    </p>
+
+    <button>ログイン</button>
 </form>
-<a href="/register">新規登録</a>
+
+<hr>
+
+<p>
+    アカウントをお持ちでない場合は
+    <a href="/register">新規登録</a>
+</p>
+
+</body>
+</html>
