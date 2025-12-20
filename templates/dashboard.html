@@ -1,0 +1,20 @@
+<h2>スクリーンタイム記録</h2>
+
+<form method="post">
+  今日の使用時間（分）
+  <input type="number" name="minutes">
+  <button>記録</button>
+</form>
+
+<h3>記録一覧</h3>
+<table border="1">
+<tr><th>日付</th><th>分</th></tr>
+{% for r in records %}
+<tr>
+  <td>{{ r[0] }}</td>
+  <td>{{ r[1] }}</td>
+</tr>
+{% endfor %}
+</table>
+
+<a href="/logout">ログアウト</a>
