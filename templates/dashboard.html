@@ -3,7 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <title>スクリーンタイム記録</title>
+
+    <style>
+        body {
+            background-color: #f4f8fb; /* 全体背景 */
+            font-family: sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #4a90e2; /* ヘッダー背景 */
+            color: white;
+            padding: 15px;
+        }
+
+        main {
+            padding: 20px;
+        }
+
+        table {
+            background-color: white; /* 表だけ白 */
+            border-collapse: collapse;
+        }
+    </style>
 </head>
+
+<body>
+
 <header>
   <h1>Screen Time Tracker</h1>
   <p>
@@ -13,7 +40,7 @@
   <hr>
 </header>
 
-<body>
+<main>
 
 <h2>スクリーンタイム記録</h2>
 
@@ -25,7 +52,7 @@
 
     <p>
         使用時間：
-        <input type="number" name="hours" min="0" max="23" value="0"> 時
+        <input type="number" name="hours" min="0" max="23" value="0"> 時間
         <input type="number" name="minutes" min="0" max="59" value="0"> 分
     </p>
 
@@ -72,6 +99,8 @@
 <p>
     <a href="/logout">ログアウト</a>
 </p>
+
+</main>
 
 </body>
 </html>

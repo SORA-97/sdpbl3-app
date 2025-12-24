@@ -3,41 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <title>新規登録 | Screen Time Tracker</title>
+
+    <style>
+        body {
+            background-color: #f4f8fb;
+            font-family: sans-serif;
+            margin: 0;
+        }
+
+        header {
+            background-color: #4a90e2;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        main {
+            max-width: 400px;
+            margin: 40px auto;
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .link {
+            text-align: center;
+            margin-top: 15px;
+        }
+    </style>
 </head>
+
 <body>
 
 <header>
     <h1>Screen Time Tracker</h1>
-    <p>スクリーンタイムを可視化して、自律的に減らす</p>
-    <hr>
+    <p>新規登録</p>
 </header>
 
-<h2>新規登録</h2>
+<main>
+    <form method="post">
+        <p>
+            ユーザー名<br>
+            <input type="text" name="username" required>
+        </p>
 
-{% if error %}
-<p style="color:red">{{ error }}</p>
-{% endif %}
+        <p>
+            パスワード<br>
+            <input type="password" name="password" required>
+        </p>
 
-<form method="post">
-    <p>
-        ユーザー名：
-        <input type="text" name="username" required>
-    </p>
+        <button>登録してはじめる</button>
+    </form>
 
-    <p>
-        パスワード：
-        <input type="password" name="password" required>
-    </p>
-
-    <button>登録</button>
-</form>
-
-<hr>
-
-<p>
-    すでにアカウントをお持ちですか？
-    <a href="/">ログイン画面へ</a>
-</p>
+    <div class="link">
+        <a href="/login">ログイン画面へ戻る</a>
+    </div>
+</main>
 
 </body>
 </html>
