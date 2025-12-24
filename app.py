@@ -70,12 +70,16 @@ def register():
 
         try:
             db = get_db()
-            db.execute(
+            cursor = db.execute(
                 "INSERT INTO users (username, password) VALUES (?, ?)",
                 (name, pw_hash)
             )
             db.commit()
-            return redirect("/")
+
+            # ★ 登録後に自動ログイン
+            session["user_id"] = cursor.lastrowid
+            return redirect("/dashboard")
+
         except sqlite3.IntegrityError:
             error = "その名前はすでに使われています"
 
