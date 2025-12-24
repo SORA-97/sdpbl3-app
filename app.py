@@ -5,9 +5,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import date, timedelta
 
 app = Flask(__name__)
-app.secret_key = "secret_key"  # 本番では変更
+app.secret_key = "secret_key"
 
-# ===== DBパス固定 =====
+# ===== DB設定 =====
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "app.db")
 
@@ -30,11 +30,18 @@ with get_db() as conn:
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
         date TEXT,
-        minutes INTEGER,
-        UNIQUE(user_id, date)
+        minutes INTEGER
     )
     """)
     conn.commit()
+
+# ===== ポイント計算 =====
+def calc_points(minutes):
+    hours = minutes // 60
+    if hours >= 10:
+        return 0
+    else:
+        return 10 - hours
 
 # ===== ログイン =====
 @app.route("/", methods=["GET", "POST"])
@@ -59,7 +66,7 @@ def login():
 
     return render_template("login.html", error=error)
 
-# ===== 新規登録 =====
+# ===== 新規登録（自動ログイン） =====
 @app.route("/register", methods=["GET", "POST"])
 def register():
     error = None
@@ -76,7 +83,6 @@ def register():
             )
             db.commit()
 
-            # ★ 登録後に自動ログイン
             session["user_id"] = cursor.lastrowid
             return redirect("/dashboard")
 
@@ -92,34 +98,61 @@ def dashboard():
         return redirect("/")
 
     user_id = session["user_id"]
+    db = get_db()
+
+    # ユーザー名取得
+    user = db.execute(
+        "SELECT username FROM users WHERE id = ?",
+        (user_id,)
+    ).fetchone()
+    username = user["username"]
 
     if request.method == "POST":
         input_date = request.form["date"]
-        hours = int(request.form["hours"])
-        minutes = int(request.form["minutes"])
-
+        hours = int(request.form.get("hours", 0))
+        minutes = int(request.form.get("minutes", 0))
         total_minutes = hours * 60 + minutes
 
-        db = get_db()
-        # 同日データは上書き
-        db.execute("""
-        INSERT INTO records (user_id, date, minutes)
-        VALUES (?, ?, ?)
-        ON CONFLICT(user_id, date)
-        DO UPDATE SET minutes = excluded.minutes
-        """, (user_id, input_date, total_minutes))
+        existing = db.execute(
+            "SELECT id FROM records WHERE user_id = ? AND date = ?",
+            (user_id, input_date)
+        ).fetchone()
+
+        if existing:
+            db.execute(
+                "UPDATE records SET minutes = ? WHERE id = ?",
+                (total_minutes, existing["id"])
+            )
+        else:
+            db.execute(
+                "INSERT INTO records (user_id, date, minutes) VALUES (?, ?, ?)",
+                (user_id, input_date, total_minutes)
+            )
         db.commit()
 
-    db = get_db()
-    records = db.execute(
+    raw_records = db.execute(
         "SELECT date, minutes FROM records WHERE user_id = ? ORDER BY date DESC",
         (user_id,)
     ).fetchall()
+
+    records = []
+    total_points = 0
+
+    for r in raw_records:
+        points = calc_points(r["minutes"])
+        total_points += points
+        records.append({
+            "date": r["date"],
+            "minutes": r["minutes"],
+            "points": points
+        })
 
     yesterday = (date.today() - timedelta(days=1)).isoformat()
 
     return render_template(
         "dashboard.html",
+        username=username,
+        total_points=total_points,
         records=records,
         default_date=yesterday
     )
@@ -130,7 +163,9 @@ def logout():
     session.clear()
     return redirect("/")
 
-# ===== favicon対策 =====
 @app.route("/favicon.ico")
 def favicon():
     return "", 204
+
+if __name__ == "__main__":
+    app.run(debug=True)

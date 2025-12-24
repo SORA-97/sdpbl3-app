@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <title>スクリーンタイム記録</title>
 </head>
+<header>
+  <h1>Screen Time Tracker</h1>
+  <p>
+    ユーザー：{{ username }}　
+    ｜ 所持ポイント：{{ total_points }} pt
+  </p>
+  <hr>
+</header>
+
 <body>
 
 <h2>スクリーンタイム記録</h2>
@@ -27,21 +36,38 @@
 
 <h3>記録一覧</h3>
 
-<table border="1" cellpadding="5">
+<table border="1" cellpadding="6">
     <tr>
         <th>日付</th>
         <th>使用時間</th>
+        <th>ポイント</th>
     </tr>
+
     {% for r in records %}
-    <tr>
-        <td>{{ r["date"] }}</td>
-        <td>
-            {{ r["minutes"] // 60 }} 時
-            {{ r["minutes"] % 60 }} 分
-        </td>
+    <tr
+        {% if r.points >= 9 %}
+            style="background-color:#d4f5d4"
+        {% elif r.points >= 6 %}
+            style="background-color:#fff3cd"
+        {% elif r.points >= 1 %}
+            style="background-color:#ffe5b4"
+        {% else %}
+            style="background-color:#f8d7da"
+        {% endif %}
+    >
+        <td>{{ r.date }}</td>
+        <td>{{ r.minutes // 60 }} 時 {{ r.minutes % 60 }} 分</td>
+        <td>{{ r.points }}</td>
     </tr>
     {% endfor %}
 </table>
+
+<hr>
+
+<h3>おすすめのイベント情報</h3>
+
+<a href="https://iko-yo.net/events?tags%5B%5D=%E5%B0%8F%E4%B8%AD%E5%AD%A6%E7%94%9F">「いこーよ」全国 小中学生の 子ども・親子おでかけイベント情報</a><br>
+<a href="https://oyako-event.com/">「おやこイベント.com」親子で楽しめるイベント・ワークショップの情報</a>
 
 <p>
     <a href="/logout">ログアウト</a>
